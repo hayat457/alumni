@@ -1,5 +1,6 @@
-using System.Collections.Concurrent;
 using Alumni.Business.DTOs.User;
+using Alumni.Domain.Entities;
+using Alumni.Domain.Enums;
 
 namespace Alumni.Business.Services;
 
@@ -15,46 +16,27 @@ public interface IInMemoryUserStore
 
 public class InMemoryUserStore : IInMemoryUserStore
 {
-    private readonly ConcurrentDictionary<int, UserDto> _users = new();
-    private int _nextId = 0;
-
-    public InMemoryUserStore()
+    private static UserDto MapToDto(User u) => new()
     {
-        // Başlangıç için örnek mock veriler
-        var sample1 = new UserDto
-        {
-            Id = Interlocked.Increment(ref _nextId),
-            FirstName = "Ahmet",
-            LastName = "Yılmaz",
-            Email = "ahmet.yilmaz@example.com",
-            Role = "Alumni",
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        };
-        _users.TryAdd(sample1.Id, sample1);
-
-        var sample2 = new UserDto
-        {
-            Id = Interlocked.Increment(ref _nextId),
-            FirstName = "Ayşe",
-            LastName = "Kaya",
-            Email = "ayse.kaya@example.com",
-            Role = "Academician",
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        };
-        _users.TryAdd(sample2.Id, sample2);
-    }
+        Id = u.Id,
+        FirstName = u.FirstName,
+        LastName = u.LastName,
+        Email = u.Email,
+        Role = u.Role.ToString(),
+        IsActive = u.IsActive,
+        CreatedAt = u.CreatedAt,
+        UpdatedAt = u.UpdatedAt
+    };
 
     public IEnumerable<UserDto> GetAll()
     {
-        return _users.Values.OrderBy(u => u.Id);
+        return User.GetAll().Select(MapToDto);
     }
 
     public UserDto? GetById(int id)
     {
-        _users.TryGetValue(id, out var user);
-        return user;
+        var u = User.GetById(id);
+        return u != null ? MapToDto(u) : null;
     }
 
     public (UserDto? User, string? Error) Create(CreateUserRequest request)
@@ -62,34 +44,8 @@ public class InMemoryUserStore : IInMemoryUserStore
         if (request == null)
             return (null, "İstek gövdesi boş olamaz.");
 
-        if (string.IsNullOrWhiteSpace(request.FirstName))
-            return (null, "Ad alanı zorunludur.");
-
-        if (string.IsNullOrWhiteSpace(request.LastName))
-            return (null, "Soyad alanı zorunludur.");
-
-        if (string.IsNullOrWhiteSpace(request.Email))
-            return (null, "E-posta alanı zorunludur.");
-
-        bool emailExists = _users.Values.Any(u =>
-            string.Equals(u.Email, request.Email.Trim(), StringComparison.OrdinalIgnoreCase));
-
-        if (emailExists)
-            return (null, "Bu e-posta adresiyle kayıtlı bir kullanıcı zaten mevcut.");
-
-        var newUser = new UserDto
-        {
-            Id = Interlocked.Increment(ref _nextId),
-            FirstName = request.FirstName.Trim(),
-            LastName = request.LastName.Trim(),
-            Email = request.Email.Trim().ToLowerInvariant(),
-            Role = request.Role.ToString(),
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        _users.TryAdd(newUser.Id, newUser);
-        return (newUser, null);
+        var (newUser, error) = User.Create(request.FirstName, request.LastName, request.Email, request.Role);
+        return (newUser != null ? MapToDto(newUser) : null, error);
     }
 
     public (UserDto? User, string? Error) Update(int id, UpdateUserRequest request)
@@ -97,38 +53,8 @@ public class InMemoryUserStore : IInMemoryUserStore
         if (request == null)
             return (null, "İstek gövdesi boş olamaz.");
 
-        if (!_users.TryGetValue(id, out var existingUser))
-            return (null, $"ID'si {id} olan kullanıcı bulunamadı.");
-
-        if (string.IsNullOrWhiteSpace(request.FirstName))
-            return (null, "Ad alanı zorunludur.");
-
-        if (string.IsNullOrWhiteSpace(request.LastName))
-            return (null, "Soyad alanı zorunludur.");
-
-        if (string.IsNullOrWhiteSpace(request.Email))
-            return (null, "E-posta alanı zorunludur.");
-
-        bool emailExists = _users.Values.Any(u =>
-            u.Id != id && string.Equals(u.Email, request.Email.Trim(), StringComparison.OrdinalIgnoreCase));
-
-        if (emailExists)
-            return (null, "Bu e-posta adresi başka bir kullanıcı tarafından kullanılıyor.");
-
-        var updatedUser = new UserDto
-        {
-            Id = id,
-            FirstName = request.FirstName.Trim(),
-            LastName = request.LastName.Trim(),
-            Email = request.Email.Trim().ToLowerInvariant(),
-            Role = request.Role.ToString(),
-            IsActive = request.IsActive,
-            CreatedAt = existingUser.CreatedAt,
-            UpdatedAt = DateTime.UtcNow
-        };
-
-        _users[id] = updatedUser;
-        return (updatedUser, null);
+        var (updated, error) = User.Update(id, request.FirstName, request.LastName, request.Email, request.Role, request.IsActive);
+        return (updated != null ? MapToDto(updated) : null, error);
     }
 
     public (UserDto? User, string? Error) Patch(int id, PatchUserRequest request)
@@ -136,40 +62,22 @@ public class InMemoryUserStore : IInMemoryUserStore
         if (request == null)
             return (null, "İstek gövdesi boş olamaz.");
 
-        if (!_users.TryGetValue(id, out var existingUser))
-            return (null, $"ID'si {id} olan kullanıcı bulunamadı.");
+        var existing = User.GetById(id);
+        if (existing == null)
+            return (null, $"ID #{id} olan kullanıcı bulunamadı.");
 
-        string newEmail = existingUser.Email;
-        if (!string.IsNullOrWhiteSpace(request.Email))
-        {
-            var trimmedEmail = request.Email.Trim().ToLowerInvariant();
-            bool emailExists = _users.Values.Any(u =>
-                u.Id != id && string.Equals(u.Email, trimmedEmail, StringComparison.OrdinalIgnoreCase));
+        var firstName = !string.IsNullOrWhiteSpace(request.FirstName) ? request.FirstName : existing.FirstName;
+        var lastName = !string.IsNullOrWhiteSpace(request.LastName) ? request.LastName : existing.LastName;
+        var email = !string.IsNullOrWhiteSpace(request.Email) ? request.Email : existing.Email;
+        var role = request.Role ?? existing.Role;
+        var isActive = request.IsActive ?? existing.IsActive;
 
-            if (emailExists)
-                return (null, "Bu e-posta adresi başka bir kullanıcı tarafından kullanılıyor.");
-
-            newEmail = trimmedEmail;
-        }
-
-        var patchedUser = new UserDto
-        {
-            Id = id,
-            FirstName = !string.IsNullOrWhiteSpace(request.FirstName) ? request.FirstName.Trim() : existingUser.FirstName,
-            LastName = !string.IsNullOrWhiteSpace(request.LastName) ? request.LastName.Trim() : existingUser.LastName,
-            Email = newEmail,
-            Role = request.Role.HasValue ? request.Role.Value.ToString() : existingUser.Role,
-            IsActive = request.IsActive.HasValue ? request.IsActive.Value : existingUser.IsActive,
-            CreatedAt = existingUser.CreatedAt,
-            UpdatedAt = DateTime.UtcNow
-        };
-
-        _users[id] = patchedUser;
-        return (patchedUser, null);
+        var (updated, error) = User.Update(id, firstName, lastName, email, role, isActive);
+        return (updated != null ? MapToDto(updated) : null, error);
     }
 
     public bool Delete(int id)
     {
-        return _users.TryRemove(id, out _);
+        return User.Delete(id);
     }
 }

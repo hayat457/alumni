@@ -4,20 +4,22 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Alumni.API.Controllers;
 
+/// <summary>
+/// UserController: Kullanıcı yönetimi MVC View katmanı controller'ı (without database).
+/// Route: /users
+/// </summary>
 [Route("users")]
 [ApiExplorerSettings(IgnoreApi = true)]
-public class UsersViewController : Controller
+public class UserController : Controller
 {
     private readonly IInMemoryUserStore _userStore;
 
-    public UsersViewController(IInMemoryUserStore userStore)
+    public UserController(IInMemoryUserStore userStore)
     {
         _userStore = userStore;
     }
 
-    /// <summary>
-    /// READ ALL: GET /users -> Tüm kullanıcıları listeler.
-    /// </summary>
+    /// <summary>READ ALL: GET /users -> Kullanıcıları listeleyen View.</summary>
     [HttpGet("")]
     public IActionResult Index()
     {
@@ -25,18 +27,14 @@ public class UsersViewController : Controller
         return View("~/Views/Users/Index.cshtml", users);
     }
 
-    /// <summary>
-    /// CREATE VIEW: GET /users/create -> Kullanıcı oluşturma form sayfasını açar.
-    /// </summary>
+    /// <summary>CREATE VIEW: GET /users/create -> Kullanıcı ekleme form sayfası.</summary>
     [HttpGet("create")]
     public IActionResult Create()
     {
         return View("~/Views/Users/Create.cshtml", new CreateUserRequest());
     }
 
-    /// <summary>
-    /// CREATE ACTION: POST /users/create veya POST /users -> Formu kaydeder.
-    /// </summary>
+    /// <summary>CREATE ACTION: POST /users/create veya POST /users -> Kullanıcı oluşturur.</summary>
     [HttpPost("create")]
     [HttpPost("")]
     public IActionResult Create([FromForm] CreateUserRequest request)
@@ -52,9 +50,7 @@ public class UsersViewController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    /// <summary>
-    /// READ ONE (DETAILS): GET /users/details/{id} veya GET /users/{id} -> Detay sayfasını açar.
-    /// </summary>
+    /// <summary>READ ONE (DETAILS): GET /users/details/{id} -> Kullanıcı detay görünümü.</summary>
     [HttpGet("details/{id:int}")]
     [HttpGet("{id:int}")]
     public IActionResult Details(int id)
@@ -69,9 +65,7 @@ public class UsersViewController : Controller
         return View("~/Views/Users/Details.cshtml", user);
     }
 
-    /// <summary>
-    /// UPDATE VIEW: GET /users/edit/{id} -> Düzenleme form sayfasını açar.
-    /// </summary>
+    /// <summary>UPDATE VIEW: GET /users/edit/{id} -> Kullanıcı düzenleme sayfası.</summary>
     [HttpGet("edit/{id:int}")]
     public IActionResult Edit(int id)
     {
@@ -85,9 +79,7 @@ public class UsersViewController : Controller
         return View("~/Views/Users/Edit.cshtml", user);
     }
 
-    /// <summary>
-    /// UPDATE ACTION: POST /users/edit/{id} -> Düzenleme formunu kaydeder.
-    /// </summary>
+    /// <summary>UPDATE ACTION: POST /users/edit/{id} -> Güncellemeyi kaydeder.</summary>
     [HttpPost("edit/{id:int}")]
     public IActionResult Edit(int id, [FromForm] UpdateUserRequest request)
     {
@@ -102,9 +94,7 @@ public class UsersViewController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    /// <summary>
-    /// DELETE ACTION: POST /users/delete/{id} -> Kullanıcıyı siler.
-    /// </summary>
+    /// <summary>DELETE ACTION: POST /users/delete/{id} -> Kullanıcıyı siler.</summary>
     [HttpPost("delete/{id:int}")]
     public IActionResult Delete(int id)
     {
