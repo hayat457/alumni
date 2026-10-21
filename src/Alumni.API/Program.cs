@@ -125,7 +125,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Alumni Platform API v1");
-        c.RoutePrefix = string.Empty; // Ana sayfada Swagger açılır
+        c.RoutePrefix = "swagger"; // Swagger UI /swagger adresindedir; ana kök / ise "ok" döner
     });
 }
 
