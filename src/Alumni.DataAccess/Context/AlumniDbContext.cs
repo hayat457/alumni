@@ -13,6 +13,8 @@ public class AlumniDbContext : DbContext
     public DbSet<Department> Departments { get; set; }
     public DbSet<Company> Companies { get; set; }
     public DbSet<EmploymentHistory> EmploymentHistories { get; set; }
+    public DbSet<JobPosting> JobPostings { get; set; }
+    public DbSet<JobApplication> JobApplications { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -92,6 +94,35 @@ public class AlumniDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        // JobPosting (İş İlanları)
+        modelBuilder.Entity<JobPosting>(e =>
+        {
+            e.HasKey(jp => jp.Id);
+            e.Property(jp => jp.Title).HasMaxLength(250).IsRequired();
+            e.Property(jp => jp.Description).IsRequired();
+            e.Property(jp => jp.Location).HasMaxLength(150);
+            e.Property(jp => jp.EmploymentType).HasMaxLength(50);
+            e.HasOne(jp => jp.Company)
+                .WithMany(c => c.JobPostings)
+                .HasForeignKey(jp => jp.CompanyId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // JobApplication (İş Başvuruları)
+        modelBuilder.Entity<JobApplication>(e =>
+        {
+            e.HasKey(ja => ja.Id);
+            e.Property(ja => ja.Status).HasMaxLength(50).IsRequired();
+            e.HasOne(ja => ja.JobPosting)
+                .WithMany(jp => jp.Applications)
+                .HasForeignKey(ja => ja.JobPostingId)
+                .OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(ja => ja.User)
+                .WithMany()
+                .HasForeignKey(ja => ja.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
         // Seed Data
         SeedData(modelBuilder);
     }
@@ -104,6 +135,53 @@ public class AlumniDbContext : DbContext
             new Department { Id = 3, Name = "Makine Mühendisliği", Code = "MM", IsActive = true },
             new Department { Id = 4, Name = "İşletme", Code = "ISL", IsActive = true }
         );
+
+        modelBuilder.Entity<Company>().HasData(
+            new Company { Id = 1, Name = "Aselsan", Sector = "Savunma Sanayi", City = "Ankara", Country = "Türkiye", IsVerified = true },
+            new Company { Id = 2, Name = "Baykar Teknoloji", Sector = "Havacılık", City = "İstanbul", Country = "Türkiye", IsVerified = true },
+            new Company { Id = 3, Name = "Trendyol", Sector = "E-Ticaret / Teknoloji", City = "İstanbul", Country = "Türkiye", IsVerified = true }
+        );
+
+        modelBuilder.Entity<JobPosting>().HasData(
+            new JobPosting
+            {
+                Id = 1,
+                CompanyId = 1,
+                Title = "Kıdemli .NET Backend Mühendisi",
+                Description = "Savunma ve haberleşme sistemleri projelerimizde görevlendirilmek üzere C#, .NET 8 ve Clean Architecture deneyimli takım arkadaşları arıyoruz.",
+                Requirements = ".NET 8+, EF Core, SQL Server/PostgreSQL, Mikroservis mimarisi",
+                Location = "Ankara / Hibrit",
+                EmploymentType = "Tam Zamanlı",
+                SalaryRange = "80.000 - 120.000 TL",
+                IsActive = true,
+                CreatedAt = new DateTime(2026, 1, 15, 10, 0, 0, DateTimeKind.Utc)
+            },
+            new JobPosting
+            {
+                Id = 2,
+                CompanyId = 3,
+                Title = "Full Stack Web Geliştirici",
+                Description = "Yüksek trafikli e-ticaret platformumuzun mikro frontend ve API altyapısında çalışacak mühendisler arıyoruz.",
+                Requirements = "ASP.NET Core Web API, React/Angular, Redis, Docker",
+                Location = "İstanbul / Uzaktan",
+                EmploymentType = "Tam Zamanlı",
+                SalaryRange = "70.000 - 110.000 TL",
+                IsActive = true,
+                CreatedAt = new DateTime(2026, 2, 1, 12, 0, 0, DateTimeKind.Utc)
+            },
+            new JobPosting
+            {
+                Id = 3,
+                CompanyId = 2,
+                Title = "Yazılım Stajyeri (2026 Yaz Dönemi)",
+                Description = "Üniversitelerin Bilgisayar veya Yazılım Mühendisliği 3./4. sınıf öğrencilerine yönelik yaz stajı programı.",
+                Requirements = "Nesne yönelimli programlama, Algoritma bilgisi, C# veya Python temeli",
+                Location = "İstanbul (Özdemir Bayraktar Milli Teknoloji Merkezi)",
+                EmploymentType = "Staj",
+                SalaryRange = "Asgari Ücret Üzeri",
+                IsActive = true,
+                CreatedAt = new DateTime(2026, 3, 10, 9, 30, 0, DateTimeKind.Utc)
+            }
+        );
     }
 }
-

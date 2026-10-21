@@ -1,0 +1,67 @@
+@model Alumni.Domain.Entities.JobPosting
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Başvuru Yap - @Model.Title</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        body { background-color: #f4f6f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        .header-bar { background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); color: #fff; padding: 1.5rem 0; margin-bottom: 2rem; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+    </style>
+</head>
+<body>
+    <div class="header-bar">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-0">🚀 İlana Başvuru Formu</h2>
+                <small class="opacity-75">@Model.Title - @Model.Company?.Name</small>
+            </div>
+            <div>
+                <a href="/job-postings/@Model.Id" class="btn btn-outline-light btn-sm">← İlan Detayına Dön</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mb-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card p-4">
+                    <form method="post" action="/job-postings/@Model.Id/apply">
+                        <div class="mb-3">
+                            <label for="applicantName" class="form-label fw-bold">Ad Soyad <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="applicantName" name="ApplicantName" placeholder="Örn: Burak Çelik" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="applicantEmail" class="form-label fw-bold">E-Posta Adresi <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="applicantEmail" name="ApplicantEmail" placeholder="burak@alumni.edu.tr" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="resumeUrl" class="form-label fw-bold">LinkedIn / CV Bağlantısı</label>
+                            <input type="url" class="form-control" id="resumeUrl" name="ResumeUrl" placeholder="https://linkedin.com/in/profil" />
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="coverLetter" class="form-label fw-bold">Ön Yazı / Notunuz</label>
+                            <textarea class="form-control" id="coverLetter" name="CoverLetter" rows="4" placeholder="Neden bu pozisyon için uygun olduğunuzu kısaca belirtin..."></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="/job-postings/@Model.Id" class="btn btn-secondary px-4">İptal</a>
+                            <button type="submit" class="btn btn-success px-4">✓ Başvurumu Gönder</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

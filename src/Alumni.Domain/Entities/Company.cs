@@ -1,7 +1,7 @@
 namespace Alumni.Domain.Entities;
 
 /// <summary>
-/// Mezunların çalıştığı şirket bilgilerini tutar.
+/// Mezunların çalıştığı ve iş ilanı açabilen şirket bilgilerini tutar.
 /// </summary>
 public class Company
 {
@@ -15,5 +15,5 @@ public class Company
 
     // Navigation properties
     public ICollection<EmploymentHistory> EmploymentHistories { get; set; } = new List<EmploymentHistory>();
+    public ICollection<JobPosting> JobPostings { get; set; } = new List<JobPosting>();
 }
-

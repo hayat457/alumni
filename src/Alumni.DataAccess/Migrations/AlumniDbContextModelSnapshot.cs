@@ -136,6 +136,35 @@ namespace Alumni.DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Companies");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            City = "Ankara",
+                            Country = "Türkiye",
+                            IsVerified = true,
+                            Name = "Aselsan",
+                            Sector = "Savunma Sanayi"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            City = "İstanbul",
+                            Country = "Türkiye",
+                            IsVerified = true,
+                            Name = "Baykar Teknoloji",
+                            Sector = "Havacılık"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            City = "İstanbul",
+                            Country = "Türkiye",
+                            IsVerified = true,
+                            Name = "Trendyol",
+                            Sector = "E-Ticaret / Teknoloji"
+                        });
                 });
 
             modelBuilder.Entity("Alumni.Domain.Entities.Department", b =>
@@ -234,6 +263,138 @@ namespace Alumni.DataAccess.Migrations
                     b.HasIndex("CompanyId");
 
                     b.ToTable("EmploymentHistories");
+                });
+
+            modelBuilder.Entity("Alumni.Domain.Entities.JobApplication", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ApplicantEmail")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ApplicantName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("AppliedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CoverLetter")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("JobPostingId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ResumeUrl")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JobPostingId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("JobApplications");
+                });
+
+            modelBuilder.Entity("Alumni.Domain.Entities.JobPosting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("ClosingDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CompanyId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EmploymentType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Requirements")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SalaryRange")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.ToTable("JobPostings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CompanyId = 1,
+                            CreatedAt = new DateTime(2026, 1, 15, 10, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Savunma ve haberleşme sistemleri projelerimizde görevlendirilmek üzere C#, .NET 8 ve Clean Architecture deneyimli takım arkadaşları arıyoruz.",
+                            EmploymentType = "Tam Zamanlı",
+                            IsActive = true,
+                            Location = "Ankara / Hibrit",
+                            Requirements = ".NET 8+, EF Core, SQL Server/PostgreSQL, Mikroservis mimarisi",
+                            SalaryRange = "80.000 - 120.000 TL",
+                            Title = "Kıdemli .NET Backend Mühendisi"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CompanyId = 3,
+                            CreatedAt = new DateTime(2026, 2, 1, 12, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Yüksek trafikli e-ticaret platformumuzun mikro frontend ve API altyapısında çalışacak mühendisler arıyoruz.",
+                            EmploymentType = "Tam Zamanlı",
+                            IsActive = true,
+                            Location = "İstanbul / Uzaktan",
+                            Requirements = "ASP.NET Core Web API, React/Angular, Redis, Docker",
+                            SalaryRange = "70.000 - 110.000 TL",
+                            Title = "Full Stack Web Geliştirici"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CompanyId = 2,
+                            CreatedAt = new DateTime(2026, 3, 10, 9, 30, 0, 0, DateTimeKind.Utc),
+                            Description = "Üniversitelerin Bilgisayar veya Yazılım Mühendisliği 3./4. sınıf öğrencilerine yönelik yaz stajı programı.",
+                            EmploymentType = "Staj",
+                            IsActive = true,
+                            Location = "İstanbul (Özdemir Bayraktar Milli Teknoloji Merkezi)",
+                            Requirements = "Nesne yönelimli programlama, Algoritma bilgisi, C# veya Python temeli",
+                            SalaryRange = "Asgari Ücret Üzeri",
+                            Title = "Yazılım Stajyeri (2026 Yaz Dönemi)"
+                        });
                 });
 
             modelBuilder.Entity("Alumni.Domain.Entities.User", b =>
@@ -339,6 +500,36 @@ namespace Alumni.DataAccess.Migrations
                     b.Navigation("Company");
                 });
 
+            modelBuilder.Entity("Alumni.Domain.Entities.JobApplication", b =>
+                {
+                    b.HasOne("Alumni.Domain.Entities.JobPosting", "JobPosting")
+                        .WithMany("Applications")
+                        .HasForeignKey("JobPostingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Alumni.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("JobPosting");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Alumni.Domain.Entities.JobPosting", b =>
+                {
+                    b.HasOne("Alumni.Domain.Entities.Company", "Company")
+                        .WithMany("JobPostings")
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+                });
+
             modelBuilder.Entity("Alumni.Domain.Entities.AlumniProfile", b =>
                 {
                     b.Navigation("EmploymentHistories");
@@ -347,6 +538,8 @@ namespace Alumni.DataAccess.Migrations
             modelBuilder.Entity("Alumni.Domain.Entities.Company", b =>
                 {
                     b.Navigation("EmploymentHistories");
+
+                    b.Navigation("JobPostings");
                 });
 
             modelBuilder.Entity("Alumni.Domain.Entities.Department", b =>
@@ -354,6 +547,11 @@ namespace Alumni.DataAccess.Migrations
                     b.Navigation("Academicians");
 
                     b.Navigation("Alumni");
+                });
+
+            modelBuilder.Entity("Alumni.Domain.Entities.JobPosting", b =>
+                {
+                    b.Navigation("Applications");
                 });
 
             modelBuilder.Entity("Alumni.Domain.Entities.User", b =>
