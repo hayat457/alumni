@@ -1,3 +1,4 @@
+
 using Alumni.Domain.Entities;
 
 namespace Alumni.Domain.Interfaces;

@@ -1,0 +1,131 @@
+@{
+    ViewData["Title"] = "Ana Sayfa";
+    var jobs = ViewBag.LatestJobs as IEnumerable<Alumni.Domain.Entities.JobPosting> ?? Enumerable.Empty<Alumni.Domain.Entities.JobPosting>();
+    var announcements = ViewBag.LatestAnnouncements as IEnumerable<Alumni.Business.DTOs.Announcement.AnnouncementDto> ?? Enumerable.Empty<Alumni.Business.DTOs.Announcement.AnnouncementDto>();
+}
+
+<!-- Hero Banner -->
+<div class="p-5 mb-4 rounded-4 shadow-sm text-white" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);">
+    <div class="row align-items-center">
+        <div class="col-lg-8">
+            <span class="badge bg-white text-primary mb-3 px-3 py-2 rounded-pill fw-bold">🎓 Üniversite Bilgi ve Mezun Ağı</span>
+            <h1 class="display-5 fw-bold mb-3">Mezunlar, Akademisyenler ve Şirketler Tek Çatı Altında</h1>
+            <p class="lead mb-4 opacity-90">
+                Alumni Platformu ile mezunlarımızla olan bağınızı güçlendirin, güncel kariyer fırsatlarını yakalayın ve duyurulardan anında haberdar olun.
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="/job-postings" class="btn btn-warning btn-lg px-4 text-dark shadow-sm">💼 İlanları İncele</a>
+                <a href="/users" class="btn btn-outline-light btn-lg px-4">👥 Kullanıcı Paneli</a>
+                <a href="/announcements" class="btn btn-outline-light btn-lg px-4">📢 Duyurular</a>
+            </div>
+        </div>
+        <div class="col-lg-4 text-center d-none d-lg-block">
+            <div style="font-size: 7rem; opacity: 0.85;">🏛️</div>
+        </div>
+    </div>
+</div>
+
+<!-- İstatistik Kartları -->
+<div class="row g-3 mb-5">
+    <div class="col-6 col-md-3">
+        <div class="card p-3 h-100 border-start border-primary border-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small text-uppercase fw-bold">Kayıtlı Kullanıcı</div>
+                    <h3 class="fw-bold mb-0 text-primary">@ViewBag.TotalUsers</h3>
+                </div>
+                <div class="fs-1 text-primary opacity-50">👥</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card p-3 h-100 border-start border-success border-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small text-uppercase fw-bold">Açık İlanlar</div>
+                    <h3 class="fw-bold mb-0 text-success">@ViewBag.TotalJobs</h3>
+                </div>
+                <div class="fs-1 text-success opacity-50">💼</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card p-3 h-100 border-start border-warning border-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small text-uppercase fw-bold">Toplam Başvuru</div>
+                    <h3 class="fw-bold mb-0 text-warning">@ViewBag.TotalApplications</h3>
+                </div>
+                <div class="fs-1 text-warning opacity-50">📥</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card p-3 h-100 border-start border-info border-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small text-uppercase fw-bold">Aktif Duyuru</div>
+                    <h3 class="fw-bold mb-0 text-info">@ViewBag.TotalAnnouncements</h3>
+                </div>
+                <div class="fs-1 text-info opacity-50">📢</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Vitrin: Son İlanlar & Duyurular -->
+<div class="row g-4">
+    <!-- Son Eklenen İş İlanları -->
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fs-5">💼 Son Eklenen Kariyer Fırsatları</span>
+                <a href="/job-postings" class="btn btn-outline-primary btn-sm">Tümünü Gör →</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    @foreach (var job in jobs)
+                    {
+                        <div class="list-group-item p-3 d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle mb-1">@job.EmploymentType</span>
+                                <h6 class="mb-1 fw-bold">
+                                    <a href="/job-postings/@job.Id" class="text-dark text-decoration-none">@job.Title</a>
+                                </h6>
+                                <small class="text-muted">🏢 @job.Company?.Name • 📍 @job.Location</small>
+                            </div>
+                            <a href="/job-postings/@job.Id/apply" class="btn btn-success btn-sm px-3">Başvur</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Son Duyurular -->
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fs-5">📢 Güncel Duyurular</span>
+                <a href="/announcements" class="btn btn-outline-secondary btn-sm">Tümü →</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    @foreach (var ann in announcements)
+                    {
+                        <div class="list-group-item p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="badge bg-info text-dark">@ann.Category</span>
+                                <small class="text-muted">@ann.CreatedAt.ToString("dd.MM.yyyy")</small>
+                            </div>
+                            <h6 class="fw-bold mb-1">
+                                <a href="/announcements/details/@ann.Id" class="text-dark text-decoration-none">@ann.Title</a>
+                            </h6>
+                            <p class="text-muted small mb-0 text-truncate">@ann.Content</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

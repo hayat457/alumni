@@ -9,9 +9,9 @@ namespace Alumni.API.Controllers;
 public class AutoController : ControllerBase
 {
     /// <summary>
-    /// ① GET / ve GET /auto -> "ok"
+    /// ① GET /ok ve GET /auto -> "ok"
     /// </summary>
-    [HttpGet("/")]
+    [HttpGet("ok")]
     [HttpGet("auto")]
     [Produces("text/plain")]
     public IActionResult GetRoot()
