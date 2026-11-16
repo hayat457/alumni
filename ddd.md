@@ -128,6 +128,25 @@ Kaynaklara doğrudan erişim ve temel CRUD işlemleri sağlar:
 ## 6. Arayüzler (UI Layer)
 
 * **`/job-postings`** → İlan kartları, arama, filtreleme ve doğrudan başvuru arayüzü
-* **`/job-postings/create`** → Şirket seçimiyle yeni iş ilanı oluşturma formu
+* **`/job-postings/create`** → Şirket seçimiyle yeni iş ilanı oluşturma formu (120 karakter başlık, zorunlu şirket, opsiyonel açıklama ve şehir doğrulama kurallarıyla)
 * **`/job-postings/{id}/apply`** → Aday başvuru formu
 * **`/applications`** → Alınan tüm başvuruların durum kartlarıyla listelendiği panel
+* **`/404`** → Tanımsız/geçersiz sayfa istekleri için sunulan generic hata arayüzü
+
+---
+
+## 7. Sistem Altyapısı ve Middleware Katmanları (Infrastructure & Guardians)
+
+Platformun güvenilirliği, izlenebilirliği ve hata izolasyonu için üç aşamalı guardian mimarisi devrededir:
+
+1. **5xx Exception Guardian (`ExceptionGuardianMiddleware`):**
+   * Bounded context içinde fırlatılan beklenmedik sunucu hatalarını izole eder.
+   * `logs/error.logs` dosyasına method, rota, exception tipi ve stack trace formatında yazar.
+   * İstemciye `500 Internal Server Error` standart JSON nesnesi iletir.
+
+2. **Terminal Request Logger (`LoggerMiddleware`):**
+   * Rota performansı ve hata analizleri için `time | method | route | res type | duration` formatında terminal akışı sağlar.
+
+3. **404 Route Guardian (`NotFoundGuardianMiddleware`):**
+   * API istekleri için açıklayıcı `reason` içeren 404 JSON gövdesi döner.
+   * Tarayıcı isteklerini otomatik olarak `/404` (`404.html`) hata sayfasına yönlendirir.

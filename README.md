@@ -107,12 +107,22 @@ Alumni-Backend/
     │   ├── Migrations/                    # EF Core SQLite veritabanı migration dosyaları
     │   └── Repositories/                  # Generic ve varlığa özel repository implementasyonları
     │
-    └── Alumni.API/                        # [SUNUM & CONTROLLER] Web API, MVC Controller ve View'lar
+    ├── Alumni.API/                        # [SUNUM & CONTROLLER] Web API, MVC Controller ve View'lar
         ├── Alumni.API.csproj              # API katmanı proje dosyası (MVC & Swagger etkin)
         ├── Program.cs                     # Uygulama başlangıç yapılandırması (DI, Middleware, Swagger)
         ├── appsettings.json               # Konfigürasyon ve bağlantı dizesi ayarları
         │
+        ├── Middlewares/                   # [GÜVENLİK, LOG & HATA YÖNETİMİ]
+        │   ├── ExceptionGuardianMiddleware.cs # 5xx Global Exception Handler & logs/error.logs dosya loglayıcı
+        │   ├── LoggerMiddleware.cs        # Formatlı istek/yanıt terminal loglayıcı (time|method|route|status|duration)
+        │   └── NotFoundGuardianMiddleware.cs  # 404 Guardian (JSON reason hata dönüşü & 404.html yönlendirmesi)
+        │
         ├── Controllers/                   # [CONTROLLER KATMANI]
+        │   ├── HomeController.cs          # Modern portal ana sayfası & /404 endpoint'i
+        │   ├── JobPostingsController.cs   # İş ilanları REST API (Doğrudan & İç İçe Rotalar)
+        │   ├── JobPostingsViewController.cs# İş ilanları MVC Razor Controller
+        │   ├── ApplicationsViewController.cs # Başvurular paneli Razor Controller
+        │   ├── ApplicationsController.cs  # Başvurular REST API Controller
         │   ├── UserController.cs          # MVC Controller -> /users (View tabanlı CRUD)
         │   ├── ApiUserController.cs       # API Controller -> /api/users (REST API CRUD)
         │   ├── AnnouncementsViewController.cs # MVC Controller -> /announcements
@@ -124,17 +134,33 @@ Alumni-Backend/
         │   ├── DepartmentController.cs    # Bölüm API işlemleri
         │   └── HealthController.cs        # Sağlık kontrolü (/api/health)
         │
-        └── Views/                         # [VIEW GÖRÜNÜM KATMANI - Razor .cshtml]
-            ├── Users/
-            │   ├── Index.cshtml           # Kullanıcı tablosu & hızlı kayıt görünümü
-            │   ├── Create.cshtml          # Yeni kullanıcı ekleme sayfası
-            │   ├── Details.cshtml         # Kullanıcı detay kartı görünümü
-            │   └── Edit.cshtml            # Kullanıcı güncelleme sayfası
-            └── Announcements/
-                ├── Index.cshtml           # Duyurular listesi görünümü
-                ├── Create.cshtml          # Duyuru oluşturma sayfası
-                ├── Details.cshtml         # Duyuru detay sayfası
-                └── Edit.cshtml            # Duyuru düzenleme sayfası
+        ├── Views/                         # [VIEW GÖRÜNÜM KATMANI - Razor .cshtml]
+        │   ├── Home/
+        │   │   └── Index.cshtml           # Modern portal ana sayfası (Hero, İstatistikler)
+        │   ├── JobPostings/
+        │   │   ├── Index.cshtml           # İlan listesi ve filtreleme
+        │   │   ├── Create.cshtml          # Yeni ilan yayınlama formu (Validation destekli)
+        │   │   ├── Details.cshtml         # İlan detay ve başvuru kartı
+        │   │   └── Apply.cshtml           # Başvuru formu
+        │   ├── Applications/
+        │   │   └── Index.cshtml           # Başvuru yönetim paneli
+        │   ├── Users/
+        │   │   ├── Index.cshtml           # Kullanıcı tablosu & hızlı kayıt görünümü
+        │   │   ├── Create.cshtml          # Yeni kullanıcı ekleme sayfası
+        │   │   ├── Details.cshtml         # Kullanıcı detay kartı görünümü
+        │   │   └── Edit.cshtml            # Kullanıcı güncelleme sayfası
+        │   └── Announcements/
+        │       ├── Index.cshtml           # Duyurular listesi görünümü
+        │       ├── Create.cshtml          # Duyuru oluşturma sayfası
+        │       ├── Details.cshtml         # Duyuru detay sayfası
+        │       └── Edit.cshtml            # Duyuru düzenleme sayfası
+        │
+        └── wwwroot/                       # [STATİK VARLIKLAR & HIZLI HTML ARAYÜZLERİ]
+            ├── 404.html                   # 404 Guardian generic hata sayfası
+            ├── index.html                 # Statik portal ana sayfası
+            ├── users.html                 # Fetch API tabanlı kullanıcılar sayfası
+            ├── job-postings.html          # Fetch API tabanlı iş ilanları sayfası
+            └── announcements.html         # Fetch API tabanlı duyurular sayfası
 ```
 
 ---
@@ -168,7 +194,76 @@ Alumni-Backend/
 
 ---
 
-## 📘 4. Swagger Dokümantasyonu
+## 🛡️ 4. Middleware & Koruma Mimarisi (Guardians & Logging)
+
+Sistem mimarisi, gelen HTTP isteklerini güvenlik, izlenebilirlik ve hata toleransı sağlamak adına sıralı özel middleware katmanlarıyla donatılmıştır:
+
+```text
+HTTP Request
+    │
+    ▼
+┌───────────────────────────────────┐
+│ 1. ExceptionGuardianMiddleware     │ -> 5xx Hataları yakalar, logs/error.logs'a yazar, JSON 500 döner
+└─────────────────┬─────────────────┘
+                  ▼
+┌───────────────────────────────────┐
+│ 2. LoggerMiddleware               │ -> Terminale "time | method | route | status | duration" yazar
+└─────────────────┬─────────────────┘
+                  ▼
+┌───────────────────────────────────┐
+│ 3. NotFoundGuardianMiddleware     │ -> 404 durumunda API için detaylı JSON 'reason', tarayıcı için 404.html sunar
+└─────────────────┬─────────────────┘
+                  ▼
+┌───────────────────────────────────┐
+│ 4. Controllers & Static Endpoints │ -> İş mantığı, API endpoint'leri ve Razor/HTML görünümleri
+└───────────────────────────────────┘
+```
+
+### 1. 5xx Guardian (`ExceptionGuardianMiddleware`)
+* **Görevi:** Uygulama genelinde fırlatılan yakalanmamış istisnaları (Unhandled Exceptions) ele alır.
+* **İstemci Yanıtı:** Standardize edilmiş anlaşılır `500 Internal Server Error` JSON modeli döner:
+  ```json
+  {
+    "statusCode": 500,
+    "error": "Internal Server Error",
+    "message": "Sunucuda beklenmeyen bir hata meydana geldi.",
+    "detail": "Hata detayı (Development modunda)",
+    "path": "/api/...",
+    "method": "POST",
+    "timestamp": "2026-11-16T21:27:00Z"
+  }
+  ```
+* **Dosya Loglama (`logs/error.logs`):** İstisna detaylarını (tarih-saat, HTTP metodu, rota, exception tipi, mesaj ve stack trace) `logs/error.logs` dosyasına yazar. Dizin yoksa otomatik oluşturulur; `.gitignore` ile repodan hariç tutulur.
+
+### 2. Formatlı İstek Loglayıcı (`LoggerMiddleware`)
+* **Görevi:** Gelen her HTTP isteğini işleme süresiyle birlikte konsola loglar.
+* **Format:** `time | method | route | res type (status code) | duration`
+* **Örnek Konsol Çıktısı:**
+  ```text
+  10:20:30 POST /api/users 201 18ms
+  10:20:35 GET /job-postings 200 4ms
+  10:21:02 GET /api/bilinmeyen-rota 404 1ms
+  ```
+
+### 3. 404 Guardian (`NotFoundGuardianMiddleware`) & Generic 404 Sayfası
+* **Görevi:** Sunucuda tanımlı olmayan rotalara yapılan istekleri yakalar.
+* **API / JSON İstekleri:** Açıklayıcı bir `reason` ve öneri içeren JSON formatında hata döner:
+  ```json
+  {
+    "statusCode": 404,
+    "error": "Not Found",
+    "reason": "Belirtilen rota veya kaynak sunucuda bulunamadı: 'GET /api/bilinmeyen-rota'",
+    "path": "/api/bilinmeyen-rota",
+    "method": "GET",
+    "timestamp": "2026-11-16T21:12:27Z",
+    "suggestion": "Lütfen rota adını, parametreleri veya Swagger dokümantasyonunu (/swagger) kontrol ediniz."
+  }
+  ```
+* **Tarayıcı / HTML İstekleri:** Kullanıcıyı modern tasarımlı `/404` (`wwwroot/404.html`) sayfasına yönlendirerek güvenli geri dönüş butonları sunar.
+
+---
+
+## 📘 5. Swagger Dokümantasyonu
 
 * **Swagger UI Adresi:** **`http://localhost:5185/swagger`**
 * Tüm REST API rotaları (`/api/users`, `/api/announcements`, `/api/auth` vb.) Swagger üzerinde şemaları, durum kodları ve parametreleriyle eksiksiz belgelenmiştir.
