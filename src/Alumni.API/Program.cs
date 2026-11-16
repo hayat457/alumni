@@ -120,6 +120,9 @@ using (var scope = app.Services.CreateScope())
 }
 
 // ── Pipeline ──────────────────────────────────────────────────────────
+// 5xx Guardian (Global Exception Handling Middleware & logs/error.logs) - En başta yer alır
+app.UseExceptionGuardian();
+
 // Custom Request Logger Middleware (time | method | route | res type | duration)
 app.UseRequestLogger();
 
