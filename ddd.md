@@ -31,11 +31,11 @@ Bu doküman, sistemin **Kariyer ve İlan Yönetimi (Career & Job Management)** a
 | Kolon Adı | Veri Tipi | Kısıtlar (Constraints) | Açıklama |
 |---|---|---|---|
 | `Id` | `int` | Primary Key, Auto-Increment | Benzersiz ilan ID'si |
-| `CompanyId` | `int` | Foreign Key (`Companies.Id`), Required | İlanı yayımlayan şirket |
-| `Title` | `nvarchar(250)` | Required, Not Null | Pozisyon / İlan başlığı |
-| `Description`| `nvarchar(max)` | Required, Not Null | İş ve rol tanımı |
+| `CompanyId` | `int` | Foreign Key (`Companies.Id`), Required | İlanı yayımlayan şirket (**Zorunlu / Required**) |
+| `Title` | `nvarchar(120)` | Required, Max: 120 | Pozisyon / İlan başlığı (**Zorunlu / Required, Maks 120 Karakter**) |
+| `Description`| `nvarchar(max)` | Nullable, Optional | İş ve rol tanımı (**Opsiyonel / Optional**) |
 | `Requirements`| `nvarchar(max)` | Nullable | Aranan teknik nitelikler |
-| `Location` | `nvarchar(150)` | Default: `'İstanbul'` | Şehir / Çalışma modeli |
+| `Location` | `nvarchar(150)` | Nullable, Optional | Şehir / Lokasyon / City (**Opsiyonel / Optional**) |
 | `EmploymentType` | `nvarchar(50)` | Default: `'Tam Zamanlı'` | Tam Zamanlı, Yarı Zamanlı, Staj, Uzaktan |
 | `SalaryRange`| `nvarchar(100)` | Nullable | Maaş aralığı |
 | `IsActive` | `bit` | Default: `1` (True) | İlanın aktiflik durumu |
@@ -59,7 +59,23 @@ Kullanıcıların/mezunların bir iş ilanına yaptığı başvuruları temsil e
 
 ---
 
-## 3. Varlık İlişkileri (Relations & Integrity)
+## 3. Doğrulama ve Alan Kuralları (Validation & Domain Rules)
+
+`JobPosting` ilan oluşturma (`POST /api/job-postings`) ve güncelleme (`PUT /api/job-postings/{id}`) işlemleri DataAnnotations ve Controller düzeyinde aşağıdaki kurallara göre doğrulanır; kural ihlallerinde **`400 Bad Request`** dönülür:
+
+* **`title`**:
+  * **Zorunlu (Required)**: Boş veya yalnızca boşluklardan oluşamaz (`[Required]`, `!string.IsNullOrWhiteSpace`).
+  * **Maksimum Uzunluk**: En fazla **120 karakter** olabilir (`[StringLength(120)]`).
+* **`company` (`CompanyId`)**:
+  * **Zorunlu (Required)**: İlan bir şirkete bağlanmalıdır (`[Required]`, `[Range(1, int.MaxValue)]`). Veritabanında mevcut geçerli bir şirket olmalıdır; aksi takdirde `400 Bad Request` döner.
+* **`city` / `Location`**:
+  * **Opsiyonel (Optional)**: Belirtilmesi zorunlu değildir, boş bırakılabilir.
+* **`description`**:
+  * **Opsiyonel (Optional)**: Belirtilmesi zorunlu değildir, boş bırakılabilir.
+
+---
+
+## 4. Varlık İlişkileri (Relations & Integrity)
 
 1. **Company ──< JobPosting (1:N):**
    * Bir şirketin birden fazla iş ilanı olabilir.

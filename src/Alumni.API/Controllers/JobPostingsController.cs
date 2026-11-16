@@ -92,26 +92,46 @@ public class JobPostingsController : ControllerBase
 
     /// <summary>
     /// DIRECT ROUTE: Yeni iş ilanı oluşturur.
+    /// Validation Kuralları:
+    /// - title: zorunlu ve en fazla 120 karakter
+    /// - company: zorunlu (CompanyId geçerli olmalı)
+    /// - city / location ve description: opsiyonel
     /// </summary>
     [HttpPost("api/job-postings")]
     [ProducesResponseType(typeof(JobPostingDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] CreateJobPostingRequest request)
     {
-        if (request == null || string.IsNullOrWhiteSpace(request.Title) || string.IsNullOrWhiteSpace(request.Description))
-            return BadRequest(new { message = "Başlık, açıklama ve geçerli bir şirket zorunludur." });
+        if (request == null)
+            return BadRequest(new { message = "İstek gövdesi boş olamaz." });
+
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        if (string.IsNullOrWhiteSpace(request.Title))
+            return BadRequest(new { message = "İlan başlığı (title) zorunludur." });
+
+        if (request.Title.Trim().Length > 120)
+            return BadRequest(new { message = "İlan başlığı (title) en fazla 120 karakter olabilir." });
+
+        if (request.CompanyId <= 0)
+            return BadRequest(new { message = "Geçerli bir şirket (company) seçilmelidir." });
 
         var company = await _db.Companies.FindAsync(request.CompanyId);
         if (company == null)
-            return BadRequest(new { message = $"ID'si #{request.CompanyId} olan şirket bulunamadı." });
+            return BadRequest(new { message = $"ID'si #{request.CompanyId} olan şirket (company) bulunamadı." });
+
+        var chosenLocation = !string.IsNullOrWhiteSpace(request.City)
+            ? request.City.Trim()
+            : (!string.IsNullOrWhiteSpace(request.Location) ? request.Location.Trim() : null);
 
         var posting = new JobPosting
         {
             CompanyId = request.CompanyId,
             Title = request.Title.Trim(),
-            Description = request.Description.Trim(),
+            Description = request.Description?.Trim(),
             Requirements = request.Requirements?.Trim(),
-            Location = !string.IsNullOrWhiteSpace(request.Location) ? request.Location.Trim() : "İstanbul",
+            Location = chosenLocation,
             EmploymentType = !string.IsNullOrWhiteSpace(request.EmploymentType) ? request.EmploymentType.Trim() : "Tam Zamanlı",
             SalaryRange = request.SalaryRange?.Trim(),
             IsActive = true,
@@ -142,19 +162,38 @@ public class JobPostingsController : ControllerBase
 
     /// <summary>
     /// DIRECT ROUTE: İş ilanını günceller.
+    /// Validation Kuralları:
+    /// - title: zorunlu ve en fazla 120 karakter
+    /// - city / location ve description: opsiyonel
     /// </summary>
     [HttpPut("api/job-postings/{id:int}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateJobPostingRequest request)
     {
+        if (request == null)
+            return BadRequest(new { message = "İstek gövdesi boş olamaz." });
+
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        if (string.IsNullOrWhiteSpace(request.Title))
+            return BadRequest(new { message = "İlan başlığı (title) zorunludur." });
+
+        if (request.Title.Trim().Length > 120)
+            return BadRequest(new { message = "İlan başlığı (title) en fazla 120 karakter olabilir." });
+
         var posting = await _db.JobPostings.FindAsync(id);
         if (posting == null)
             return NotFound(new { message = $"ID'si #{id} olan iş ilanı bulunamadı." });
 
+        var chosenLocation = !string.IsNullOrWhiteSpace(request.City)
+            ? request.City.Trim()
+            : (!string.IsNullOrWhiteSpace(request.Location) ? request.Location.Trim() : null);
+
         posting.Title = request.Title.Trim();
-        posting.Description = request.Description.Trim();
+        posting.Description = request.Description?.Trim();
         posting.Requirements = request.Requirements?.Trim();
-        posting.Location = request.Location.Trim();
-        posting.EmploymentType = request.EmploymentType.Trim();
+        posting.Location = chosenLocation;
+        posting.EmploymentType = !string.IsNullOrWhiteSpace(request.EmploymentType) ? request.EmploymentType.Trim() : posting.EmploymentType;
         posting.SalaryRange = request.SalaryRange?.Trim();
         posting.IsActive = request.IsActive;
         posting.ClosingDate = request.ClosingDate;

@@ -32,4 +32,15 @@ public class HomeController : Controller
 
         return View("~/Views/Home/Index.cshtml");
     }
+
+    /// <summary>
+    /// Generic 404 Hata Sayfası (404 Guardian tarafından yönlendirilir)
+    /// </summary>
+    [HttpGet("404")]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public IActionResult NotFoundPage()
+    {
+        Response.StatusCode = StatusCodes.Status404NotFound;
+        return PhysicalFile(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "404.html"), "text/html");
+    }
 }

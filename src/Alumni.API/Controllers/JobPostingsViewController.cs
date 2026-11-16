@@ -40,20 +40,46 @@ public class JobPostingsViewController : Controller
     [HttpPost("")]
     public async Task<IActionResult> Create([FromForm] CreateJobPostingRequest request)
     {
+        if (string.IsNullOrWhiteSpace(request.Title))
+        {
+            TempData["ErrorMessage"] = "İlan başlığı (title) zorunludur.";
+            ViewBag.Companies = await _db.Companies.ToListAsync();
+            return View("~/Views/JobPostings/Create.cshtml", request);
+        }
+
+        if (request.Title.Trim().Length > 120)
+        {
+            TempData["ErrorMessage"] = "İlan başlığı (title) en fazla 120 karakter olabilir.";
+            ViewBag.Companies = await _db.Companies.ToListAsync();
+            return View("~/Views/JobPostings/Create.cshtml", request);
+        }
+
+        if (request.CompanyId <= 0)
+        {
+            TempData["ErrorMessage"] = "Lütfen geçerli bir şirket seçiniz.";
+            ViewBag.Companies = await _db.Companies.ToListAsync();
+            return View("~/Views/JobPostings/Create.cshtml", request);
+        }
+
         var company = await _db.Companies.FindAsync(request.CompanyId);
         if (company == null)
         {
             TempData["ErrorMessage"] = "Lütfen geçerli bir şirket seçiniz.";
-            return RedirectToAction(nameof(Create));
+            ViewBag.Companies = await _db.Companies.ToListAsync();
+            return View("~/Views/JobPostings/Create.cshtml", request);
         }
+
+        var chosenLocation = !string.IsNullOrWhiteSpace(request.City)
+            ? request.City.Trim()
+            : (!string.IsNullOrWhiteSpace(request.Location) ? request.Location.Trim() : null);
 
         var posting = new JobPosting
         {
             CompanyId = request.CompanyId,
             Title = request.Title.Trim(),
-            Description = request.Description.Trim(),
+            Description = request.Description?.Trim(),
             Requirements = request.Requirements?.Trim(),
-            Location = !string.IsNullOrWhiteSpace(request.Location) ? request.Location.Trim() : "İstanbul",
+            Location = chosenLocation,
             EmploymentType = !string.IsNullOrWhiteSpace(request.EmploymentType) ? request.EmploymentType.Trim() : "Tam Zamanlı",
             SalaryRange = request.SalaryRange?.Trim(),
             IsActive = true,

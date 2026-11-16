@@ -98,9 +98,9 @@ public class AlumniDbContext : DbContext
         modelBuilder.Entity<JobPosting>(e =>
         {
             e.HasKey(jp => jp.Id);
-            e.Property(jp => jp.Title).HasMaxLength(250).IsRequired();
-            e.Property(jp => jp.Description).IsRequired();
-            e.Property(jp => jp.Location).HasMaxLength(150);
+            e.Property(jp => jp.Title).HasMaxLength(120).IsRequired();
+            e.Property(jp => jp.Description).IsRequired(false);
+            e.Property(jp => jp.Location).HasMaxLength(150).IsRequired(false);
             e.Property(jp => jp.EmploymentType).HasMaxLength(50);
             e.HasOne(jp => jp.Company)
                 .WithMany(c => c.JobPostings)

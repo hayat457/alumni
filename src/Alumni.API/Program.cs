@@ -1,4 +1,5 @@
 using System.Text;
+using Alumni.API.Middlewares;
 using Alumni.Business.Services;
 using Alumni.DataAccess.Context;
 using Alumni.DataAccess.Repositories;
@@ -119,6 +120,12 @@ using (var scope = app.Services.CreateScope())
 }
 
 // ── Pipeline ──────────────────────────────────────────────────────────
+// Custom Request Logger Middleware (time | method | route | res type | duration)
+app.UseRequestLogger();
+
+// 404 Guardian Middleware (Bulunamayan rotaları yakalar ve JSON / HTML hata döner)
+app.UseNotFoundGuardian();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

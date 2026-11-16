@@ -42,6 +42,10 @@
         <div class="row justify-content-center">
             <div class="col-md-8">
                 <div class="card p-4">
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger mb-3">@TempData["ErrorMessage"]</div>
+                    }
                     <form method="post" action="/job-postings/create">
                         <div class="row mb-3">
                             <div class="col-md-6">
@@ -49,7 +53,7 @@
                                 <select class="form-select" id="companyId" name="CompanyId" required>
                                     @foreach (var c in companies)
                                     {
-                                        <option value="@c.Id">@c.Name (@c.Sector)</option>
+                                        <option value="@c.Id" selected="@(Model?.CompanyId == c.Id ? "selected" : null)">@c.Name (@c.Sector)</option>
                                     }
                                 </select>
                             </div>
@@ -65,24 +69,24 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="title" class="form-label fw-bold">Pozisyon / İlan Başlığı <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="title" name="Title" placeholder="Örn: Backend Developer" required />
+                            <label for="title" class="form-label fw-bold">Pozisyon / İlan Başlığı <span class="text-danger">* (Maks 120 karakter)</span></label>
+                            <input type="text" class="form-control" id="title" name="Title" maxlength="120" value="@Model?.Title" placeholder="Örn: Backend Developer" required />
                         </div>
 
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="location" class="form-label fw-bold">Lokasyon</label>
-                                <input type="text" class="form-control" id="location" name="Location" value="İstanbul" />
+                                <label for="city" class="form-label fw-bold">Şehir (Opsiyonel)</label>
+                                <input type="text" class="form-control" id="city" name="City" value="@Model?.City" placeholder="Örn: Ankara" />
                             </div>
                             <div class="col-md-6">
                                 <label for="salaryRange" class="form-label fw-bold">Maaş Aralığı (Opsiyonel)</label>
-                                <input type="text" class="form-control" id="salaryRange" name="SalaryRange" placeholder="Örn: 50.000 - 75.000 TL" />
+                                <input type="text" class="form-control" id="salaryRange" name="SalaryRange" value="@Model?.SalaryRange" placeholder="Örn: 50.000 - 75.000 TL" />
                             </div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="description" class="form-label fw-bold">İş Tanımı <span class="text-danger">*</span></label>
-                            <textarea class="form-control" id="description" name="Description" rows="4" placeholder="Rol ve sorumluluklar..." required></textarea>
+                            <label for="description" class="form-label fw-bold">İş Tanımı <span class="text-muted small">(Opsiyonel)</span></label>
+                            <textarea class="form-control" id="description" name="Description" rows="4" placeholder="Rol ve sorumluluklar...">@Model?.Description</textarea>
                         </div>
 
                         <div class="mb-4">
